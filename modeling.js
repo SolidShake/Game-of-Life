@@ -1,83 +1,196 @@
+//script based on "webgl_objects_update" from official docs of THREE.js
+
 window.onload = function() {
-  var scene, camera, render;
 
-  container = document.createElement('div');
-  document.body.appendChild(container);
+	var container;
+	var camera, scene, renderer;
 
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,0.1,2000); //перспективная проекция
-  camera.position.x = 100;
-  camera.position.y = 100;
-  camera.position.z = 600;
 
-  function initSquare() {
-    var material = new THREE.LineBasicMaterial({
-  	color: 0x000000
-    });
+	var sideSize = 15;
+	var sideLen = 30;
 
-    for(var i = 0; i <= 200; i = i + 10) {
-      var line_geometry = new THREE.Geometry();
-      line_geometry.vertices.push(new THREE.Vector3(i,0,0));
-      line_geometry.vertices.push(new THREE.Vector3(i,200,0));
+	function matrixArray(rows, colomns) {
+	  var arr = [];
+	  for(var i = 0; i < colomns; i++) {
+	    arr[i] = [];
+	    for(var j = 0; j < rows; j++) {
+	      arr[i][j] = 0;
+	    }
+	  }
+	  return arr;
+	}
+	
+ 	var objectNewGeometry = matrixArray(sideLen, sideLen);
+ 	var tempArr = matrixArray(sideLen, sideLen);
 
-      var line = new THREE.Line(line_geometry, material);
+	init();
+	createTestConfig();
+	animate();
 
-      scene.add(line);
-    }
+	function init() {
 
-    for(var i = 0; i <= 200; i = i + 10) {
-      var line_geometry = new THREE.Geometry();
-      line_geometry.vertices.push(new THREE.Vector3(0,i,0));
-      line_geometry.vertices.push(new THREE.Vector3(200,i,0));
+		container = document.createElement( 'div' );
+		document.body.appendChild( container );
 
-      var line = new THREE.Line(line_geometry, material);
+		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+		//camera = new THREE.OrthographicCamera((window.innerWidth/-2), (window.innerWidth/2), (window.innerHeight / -2), (window.innerHeight / 2), 1, 1000 );
+		camera.position.z = 600;
 
-      scene.add(line);
-    }
-  }
-  initSquare();
+		scene = new THREE.Scene();
 
-  function createCoub(x,y) {
-    var cube_geometry = new THREE.BoxGeometry(10,10,0);
-    var cube_texture = new THREE.MeshBasicMaterial({color: 0x0000ff});
-    var cube = new THREE.Mesh(cube_geometry,cube_texture);
-    cube.position.x = x + 5;
-    cube.position.y = y + 5;
-    cube.position.z = 0;
+		var N = sideSize * sideLen;
+		
+		for ( var i = 0; i < N; i = i + sideSize ) {
+			for ( var j = 0; j < N; j = j + sideSize ) {
 
-    scene.add(cube);
-  }
+				var object = createObject(createMultiMaterial(0));
+				object.position.set( i - N/2, j - N/2, 0 );
+				scene.add( object );
+				objectNewGeometry[i/sideSize][j/sideSize] = object;
 
-  function removeCoubs() {
-    scene.children.forEach(function(object){
-      scene.remove(object);
-    });
-  }
+				
+			}
+		}
 
-  var sideSize = 10;
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		container.appendChild( renderer.domElement );
 
-  function randomGen() {
-    for(var i = 0; i < 20 * sideSize; i = i + sideSize) {
-      for(var j = 0; j < 20 * sideSize; j = j + sideSize) {
-        if(Math.random() >= 0.5) {
-          createCoub(i, j);
-        }
-      }
-    }
-  }
-  randomGen();
+		window.addEventListener( 'resize', onWindowResize, true );
+	}
 
-  render = new THREE.WebGLRenderer({ alpha: true }); // рендер белого фона
-  render.setSize(window.innerWidth,window.innerHeight);
-  container.appendChild(render.domElement);
+	function createObject( material ) {
 
-  animation();
+		var geometry = createGeometry();
+		return new THREE.Mesh( geometry, material );
 
-  function animation() {
-    requestAnimationFrame(animation);
-    //randomGen();
-    //initSquare();
-    //removeCoubs();
-    render.render(scene,camera);
-  }
+	}
+
+	function createGeometry() {
+
+		var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+		return geometry;
+
+	}
+
+	function createMultiMaterial(status) {
+
+		var materials;
+		if (status == 0) materials = new THREE.MeshBasicMaterial({color: 0xffffff});
+		else materials = new THREE.MeshBasicMaterial({color: 0x0000ff});
+		 
+		return materials;
+
+	}
+
+	function _createMultiMaterial() {
+
+		var materials = [
+			new THREE.MeshBasicMaterial( { color: 0xffffff } ),
+			//new THREE.MeshBasicMaterial( { color: 0xff0000 } ),
+			//new THREE.MeshBasicMaterial( { color: 0xffff00 } ),
+			//new THREE.MeshBasicMaterial( { color: 0x00ff00 } ),
+			//new THREE.MeshBasicMaterial( { color: 0x00ffff } ),
+			new THREE.MeshBasicMaterial( { color: 0x0000ff } ),
+			//new THREE.MeshBasicMaterial( { color: 0xff00ff } )
+		];
+		//var ind = Math.floor(Math.random() * (materials.length) );
+		var ind = Math.floor(Math.random() * (materials.length));
+
+
+		return materials[ind];
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function animate() {
+
+		setTimeout( animate, 1000 );
+
+		render();
+
+	}
+
+	function checkStatus(i, j) {
+
+		var alive = 0;
+
+		// 3 == white == dead		
+		if(tempArr[i][j] == 3) {
+
+			if(tempArr[i-1][j+1] !== 3) alive++;
+			if(tempArr[i][j+1]   !== 3) alive++;
+			if(tempArr[i+1][j+1] !== 3) alive++;
+			if(tempArr[i-1][j]   !== 3) alive++;
+			if(tempArr[i+1][j]   !== 3) alive++;
+			if(tempArr[i-1][j-1] !== 3) alive++;
+			if(tempArr[i][j-1]   !== 3) alive++;
+			if(tempArr[i+1][j-1] !== 3) alive++;
+
+			if(alive == 3) objectNewGeometry[i][j].material = createMultiMaterial(1);
+
+		} else {
+
+			if(tempArr[i-1][j+1] !== 3) alive++;
+			if(tempArr[i][j+1]   !== 3) alive++;
+			if(tempArr[i+1][j+1] !== 3) alive++;
+			if(tempArr[i-1][j]   !== 3) alive++;
+			if(tempArr[i+1][j]   !== 3) alive++;
+			if(tempArr[i-1][j-1] !== 3) alive++;
+			if(tempArr[i][j-1]   !== 3) alive++;
+			if(tempArr[i+1][j-1] !== 3) alive++;
+
+			if(alive !== 2 || alive !== 3) objectNewGeometry[i][j].material = createMultiMaterial(0);
+
+		}
+
+	}
+
+	function createTestConfig() {
+		 for ( var i = 1; i < sideLen-1; i++) {
+			for ( var j = 1; j < sideLen-1; j++) {
+
+				objectNewGeometry[i][j].material = _createMultiMaterial();
+		
+			}
+		}  
+	}
+
+	function render() {
+		
+		for ( var i = 0; i < sideLen; i++) {
+			for ( var j = 0; j < sideLen; j++) {
+
+				var outputR = objectNewGeometry[i][j].material.color['r'];
+				var outputG = objectNewGeometry[i][j].material.color['g'];
+				var outputB = objectNewGeometry[i][j].material.color['b'];
+
+				var output = outputR + outputG + outputB;
+
+				tempArr[i][j] = output;
+
+			}
+		}
+
+		for ( var i = 1; i < sideLen - 1; i++) {
+			for ( var j = 1; j < sideLen - 1; j++) {
+				checkStatus(i, j);
+			}
+		}
+
+		//objectNewGeometry[15][15].material = createMultiMaterial(1)
+		//console.log(output);
+
+		renderer.render( scene, camera );
+
+	}
 }
