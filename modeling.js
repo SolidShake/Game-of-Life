@@ -5,7 +5,6 @@ window.onload = function() {
 	var container;
 	var camera, scene, renderer;
 
-
 	var sideSize = 15;
 	var sideLen = 30;
 
