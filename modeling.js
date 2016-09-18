@@ -47,7 +47,6 @@ window.onload = function() {
 				object.position.set( i - N/2, j - N/2, 0 );
 				scene.add( object );
 				objectNewGeometry[i/sideSize][j/sideSize] = object;
-
 				
 			}
 		}
@@ -78,28 +77,9 @@ window.onload = function() {
 
 		var materials;
 		if (status == 0) materials = new THREE.MeshBasicMaterial({color: 0xffffff});
-		else materials = new THREE.MeshBasicMaterial({color: 0x0000ff});
+		else materials = new THREE.MeshBasicMaterial({color: 0xff0000});
 		 
 		return materials;
-
-	}
-
-	function _createMultiMaterial() {
-
-		var materials = [
-			new THREE.MeshBasicMaterial( { color: 0xffffff } ),
-			//new THREE.MeshBasicMaterial( { color: 0xff0000 } ),
-			//new THREE.MeshBasicMaterial( { color: 0xffff00 } ),
-			//new THREE.MeshBasicMaterial( { color: 0x00ff00 } ),
-			//new THREE.MeshBasicMaterial( { color: 0x00ffff } ),
-			new THREE.MeshBasicMaterial( { color: 0x0000ff } ),
-			//new THREE.MeshBasicMaterial( { color: 0xff00ff } )
-		];
-		//var ind = Math.floor(Math.random() * (materials.length) );
-		var ind = Math.floor(Math.random() * (materials.length));
-
-
-		return materials[ind];
 
 	}
 
@@ -123,8 +103,12 @@ window.onload = function() {
 	function checkStatus(i, j) {
 
 		var alive = 0;
+		
+		// 3 == white == dead
+		// если у мертвой клетки ровно 3 соседа — она становится живой
+		// если у живой клетки 2 или 3 живые соседки, она остается живой
+		// иначе она умирает от "одиночества" или "перенаселения" 		
 
-		// 3 == white == dead		
 		if(tempArr[i][j] == 3) {
 
 			if(tempArr[i-1][j+1] !== 3) alive++;
@@ -149,24 +133,27 @@ window.onload = function() {
 			if(tempArr[i][j-1]   !== 3) alive++;
 			if(tempArr[i+1][j-1] !== 3) alive++;
 
-			if(alive !== 2 || alive !== 3) objectNewGeometry[i][j].material = createMultiMaterial(0);
-
+			if(alive < 2 || alive > 3) objectNewGeometry[i][j].material = createMultiMaterial(0);
+			
 		}
 
 	}
 
 	function createTestConfig() {
-		 for ( var i = 1; i < sideLen-1; i++) {
-			for ( var j = 1; j < sideLen-1; j++) {
 
-				objectNewGeometry[i][j].material = _createMultiMaterial();
-		
-			}
-		}  
+		// classic pattern "glider" (планер)
+		objectNewGeometry[10][10].material = createMultiMaterial(1);
+		objectNewGeometry[11][10].material = createMultiMaterial(1);
+		objectNewGeometry[12][10].material = createMultiMaterial(1);
+		objectNewGeometry[12][11].material = createMultiMaterial(1);
+		objectNewGeometry[11][12].material = createMultiMaterial(1);
+
 	}
 
 	function render() {
-		
+
+
+		//create array of colors		
 		for ( var i = 0; i < sideLen; i++) {
 			for ( var j = 0; j < sideLen; j++) {
 
@@ -176,21 +163,18 @@ window.onload = function() {
 
 				var output = outputR + outputG + outputB;
 
-				tempArr[i][j] = output;
+				tempArr[i][j] = output;			
 
 			}
 		}
+
+		renderer.render( scene, camera );
 
 		for ( var i = 1; i < sideLen - 1; i++) {
 			for ( var j = 1; j < sideLen - 1; j++) {
 				checkStatus(i, j);
 			}
 		}
-
-		//objectNewGeometry[15][15].material = createMultiMaterial(1)
-		//console.log(output);
-
-		renderer.render( scene, camera );
 
 	}
 }
