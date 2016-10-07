@@ -2,178 +2,180 @@
 
 window.onload = function() {
 
-	var container;
-	var camera, scene, renderer;
+    var container;
+    var camera, scene, renderer;
 
-	var sideSize = 15;
-	var sideLen = 30;
+    var sideSize = 15;
+    var sideLen = 30;
 
-	function matrixArray(rows, colomns) {
-	  var arr = [];
-	  for(var i = 0; i < colomns; i++) {
-	    arr[i] = [];
-	    for(var j = 0; j < rows; j++) {
-	      arr[i][j] = 0;
-	    }
-	  }
-	  return arr;
-	}
-	
- 	var objectNewGeometry = matrixArray(sideLen, sideLen);
- 	var tempArr = matrixArray(sideLen, sideLen);
+    function matrixArray(rows, colomns) {
 
-	init();
-	createTestConfig();
-	animate();
+      var arr = [];
+      for(var i = 0; i < colomns; i++) {
+          arr[i] = [];
+          for(var j = 0; j < rows; j++) {
+              arr[i][j] = 0;
+          }
+      }
+      return arr;
+      
+    }
 
-	function init() {
+    var objectNewGeometry = matrixArray(sideLen, sideLen);
+    var tempArr = matrixArray(sideLen, sideLen);
 
-		container = document.createElement( 'div' );
-		document.body.appendChild( container );
+    init();
+    createTestConfig();
+    animate();
 
-		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-		//camera = new THREE.OrthographicCamera((window.innerWidth/-2), (window.innerWidth/2), (window.innerHeight / -2), (window.innerHeight / 2), 1, 1000 );
-		camera.position.z = 600;
+    function init() {
 
-		scene = new THREE.Scene();
+        container = document.createElement( 'div' );
+        document.body.appendChild( container );
 
-		var N = sideSize * sideLen;
-		
-		for ( var i = 0; i < N; i = i + sideSize ) {
-			for ( var j = 0; j < N; j = j + sideSize ) {
+        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+        //camera = new THREE.OrthographicCamera((window.innerWidth/-2), (window.innerWidth/2), (window.innerHeight / -2), (window.innerHeight / 2), 1, 1000 );
+        camera.position.z = 600;
 
-				var object = createObject(createMultiMaterial(0));
-				object.position.set( i - N/2, j - N/2, 0 );
-				scene.add( object );
-				objectNewGeometry[i/sideSize][j/sideSize] = object;
-				
-			}
-		}
+        scene = new THREE.Scene();
 
-		renderer = new THREE.WebGLRenderer( { antialias: true } );
-		renderer.setPixelRatio( window.devicePixelRatio );
-		renderer.setSize( window.innerWidth, window.innerHeight );
-		container.appendChild( renderer.domElement );
+        var N = sideSize * sideLen;
 
-		window.addEventListener( 'resize', onWindowResize, true );
-	}
+        for ( var i = 0; i < N; i = i + sideSize ) {
+            for ( var j = 0; j < N; j = j + sideSize ) {
 
-	function createObject( material ) {
+                var object = createObject(createMultiMaterial(0));
+                object.position.set( i - N/2, j - N/2, 0 );
+                scene.add( object );
+                objectNewGeometry[i/sideSize][j/sideSize] = object;
 
-		var geometry = createGeometry();
-		return new THREE.Mesh( geometry, material );
+            }
+        }
 
-	}
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container.appendChild( renderer.domElement );
 
-	function createGeometry() {
+        window.addEventListener( 'resize', onWindowResize, true );
+    }
 
-		var geometry = new THREE.BoxGeometry( 10, 10, 10 );
-		return geometry;
+    function createObject( material ) {
 
-	}
+        var geometry = createGeometry();
+        return new THREE.Mesh( geometry, material );
 
-	function createMultiMaterial(status) {
+    }
 
-		var materials;
-		if (status == 0) materials = new THREE.MeshBasicMaterial({color: 0xffffff});
-		else materials = new THREE.MeshBasicMaterial({color: 0xff0000});
-		 
-		return materials;
+    function createGeometry() {
 
-	}
+        var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+        return geometry;
 
-	function onWindowResize() {
+    }
 
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
+    function createMultiMaterial(status) {
 
-		renderer.setSize( window.innerWidth, window.innerHeight );
+        var materials;
+        if (status == 0) materials = new THREE.MeshBasicMaterial({color: 0xffffff});
+        else materials = new THREE.MeshBasicMaterial({color: 0xff0000});
 
-	}
+        return materials;
 
-	function animate() {
+    }
 
-		setTimeout( animate, 1000 );
+    function onWindowResize() {
 
-		render();
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
 
-	}
+        renderer.setSize( window.innerWidth, window.innerHeight );
 
-	function checkStatus(i, j) {
+    }
 
-		var alive = 0;
-		
-		// 3 == white == dead
-		// если у мертвой клетки ровно 3 соседа — она становится живой
-		// если у живой клетки 2 или 3 живые соседки, она остается живой
-		// иначе она умирает от "одиночества" или "перенаселения" 		
+    function animate() {
 
-		if(tempArr[i][j] == 3) {
+        setTimeout( animate, 1000 );
 
-			if(tempArr[i-1][j+1] !== 3) alive++;
-			if(tempArr[i][j+1]   !== 3) alive++;
-			if(tempArr[i+1][j+1] !== 3) alive++;
-			if(tempArr[i-1][j]   !== 3) alive++;
-			if(tempArr[i+1][j]   !== 3) alive++;
-			if(tempArr[i-1][j-1] !== 3) alive++;
-			if(tempArr[i][j-1]   !== 3) alive++;
-			if(tempArr[i+1][j-1] !== 3) alive++;
+        render();
 
-			if(alive == 3) objectNewGeometry[i][j].material = createMultiMaterial(1);
+    }
 
-		} else {
+    function checkStatus(i, j) {
 
-			if(tempArr[i-1][j+1] !== 3) alive++;
-			if(tempArr[i][j+1]   !== 3) alive++;
-			if(tempArr[i+1][j+1] !== 3) alive++;
-			if(tempArr[i-1][j]   !== 3) alive++;
-			if(tempArr[i+1][j]   !== 3) alive++;
-			if(tempArr[i-1][j-1] !== 3) alive++;
-			if(tempArr[i][j-1]   !== 3) alive++;
-			if(tempArr[i+1][j-1] !== 3) alive++;
+        var alive = 0;
 
-			if(alive < 2 || alive > 3) objectNewGeometry[i][j].material = createMultiMaterial(0);
-			
-		}
+        // 3 == white == dead
+        // если у мертвой клетки ровно 3 соседа — она становится живой
+        // если у живой клетки 2 или 3 живые соседки, она остается живой
+        // иначе она умирает от "одиночества" или "перенаселения"
 
-	}
+        if(tempArr[i][j] == 3) {
 
-	function createTestConfig() {
+            if(tempArr[i-1][j+1] !== 3) alive++;
+            if(tempArr[i][j+1]   !== 3) alive++;
+            if(tempArr[i+1][j+1] !== 3) alive++;
+            if(tempArr[i-1][j]   !== 3) alive++;
+            if(tempArr[i+1][j]   !== 3) alive++;
+            if(tempArr[i-1][j-1] !== 3) alive++;
+            if(tempArr[i][j-1]   !== 3) alive++;
+            if(tempArr[i+1][j-1] !== 3) alive++;
 
-		// classic pattern "glider" (планер)
-		objectNewGeometry[10][10].material = createMultiMaterial(1);
-		objectNewGeometry[11][10].material = createMultiMaterial(1);
-		objectNewGeometry[12][10].material = createMultiMaterial(1);
-		objectNewGeometry[12][11].material = createMultiMaterial(1);
-		objectNewGeometry[11][12].material = createMultiMaterial(1);
+            if(alive == 3) objectNewGeometry[i][j].material = createMultiMaterial(1);
 
-	}
+        } else {
 
-	function render() {
+            if(tempArr[i-1][j+1] !== 3) alive++;
+            if(tempArr[i][j+1]   !== 3) alive++;
+            if(tempArr[i+1][j+1] !== 3) alive++;
+            if(tempArr[i-1][j]   !== 3) alive++;
+            if(tempArr[i+1][j]   !== 3) alive++;
+            if(tempArr[i-1][j-1] !== 3) alive++;
+            if(tempArr[i][j-1]   !== 3) alive++;
+            if(tempArr[i+1][j-1] !== 3) alive++;
+
+            if(alive < 2 || alive > 3) objectNewGeometry[i][j].material = createMultiMaterial(0);
+
+        }
+
+    }
+
+    function createTestConfig() {
+
+        // classic pattern "glider" (планер)
+        objectNewGeometry[10][10].material = createMultiMaterial(1);
+        objectNewGeometry[11][10].material = createMultiMaterial(1);
+        objectNewGeometry[12][10].material = createMultiMaterial(1);
+        objectNewGeometry[12][11].material = createMultiMaterial(1);
+        objectNewGeometry[11][12].material = createMultiMaterial(1);
+
+    }
+
+    function render() {
 
 
-		//create array of colors		
-		for ( var i = 0; i < sideLen; i++) {
-			for ( var j = 0; j < sideLen; j++) {
+        //create array of colors
+        for ( var i = 0; i < sideLen; i++) {
+            for ( var j = 0; j < sideLen; j++) {
 
-				var outputR = objectNewGeometry[i][j].material.color['r'];
-				var outputG = objectNewGeometry[i][j].material.color['g'];
-				var outputB = objectNewGeometry[i][j].material.color['b'];
+                var outputR = objectNewGeometry[i][j].material.color['r'];
+                var outputG = objectNewGeometry[i][j].material.color['g'];
+                var outputB = objectNewGeometry[i][j].material.color['b'];
 
-				var output = outputR + outputG + outputB;
+                var output = outputR + outputG + outputB;
 
-				tempArr[i][j] = output;			
+                tempArr[i][j] = output;
 
-			}
-		}
+            }
+        }
 
-		renderer.render( scene, camera );
+        renderer.render( scene, camera );
 
-		for ( var i = 1; i < sideLen - 1; i++) {
-			for ( var j = 1; j < sideLen - 1; j++) {
-				checkStatus(i, j);
-			}
-		}
+        for ( var i = 1; i < sideLen - 1; i++) {
+            for ( var j = 1; j < sideLen - 1; j++) {
+                checkStatus(i, j);
+            }
+        }
 
-	}
+    }
 }
